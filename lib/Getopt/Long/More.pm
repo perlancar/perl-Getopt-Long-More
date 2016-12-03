@@ -59,7 +59,7 @@ my $_cur_opts_spec = [];
 sub GetOptionsFromArray {
     require Getopt::Long;
 
-    my $ary = [@{shift()}]; # shallow copy
+    my $ary = shift;
 
     if (ref($_[0]) eq 'HASH') {
         # we bail out, user only specifies a list of option specs, e.g. (\%h,
@@ -94,12 +94,28 @@ sub GetOptionsFromArray {
     # strip the optspec objects
     my $i = -1;
     my @go_opts_spec;
-    for (@opts_spec) {
+    my $osname;
+    my $has_arg_handler;
+    my $arg_handler_accessed;
+    for my $e (@opts_spec) {
         $i++;
-        if ($i % 2 && ref($_) eq 'Getopt::Long::More::OptSpec') {
-            push @go_opts_spec, $_->{handler};
+        if ($i % 2 == 0) {
+            $osname = $e;
+            push @go_opts_spec, $e;
         } else {
-            push @go_opts_spec, $_;
+            if (ref($e) eq 'Getopt::Long::More::OptSpec') {
+                if ($osname eq '<>') {
+                    $has_arg_handler++;
+                    push @go_opts_spec, sub {
+                        $arg_handler_accessed++;
+                        $e->{handler}->(@_);
+                    };
+                } else {
+                    push @go_opts_spec, $e->{handler};
+                }
+            } else {
+                push @go_opts_spec, $e;
+            }
         }
     }
 
@@ -200,19 +216,33 @@ sub GetOptionsFromArray {
     for (@opts_spec) {
         $i++;
         if ($i % 2 && ref($_) eq 'Getopt::Long::More::OptSpec') {
+            my $osname = $opts_spec[$i-1];
+
             # check required
             if ($_->{required}) {
-                if (ref($_->{handler}) eq 'SCALAR'
-                        && !defined(${$_->{handler}})) {
-                    die "Missing required option " . $opts_spec[$i-1] . "\n";
-                # XXX doesn't work yet?
-                } elsif (ref($_->{handler}) eq 'ARRAY' &&
-                             !@{$_->{handler}}) {
-                    die "Missing required option " . $opts_spec[$i-1] . "\n";
-                # XXX doesn't work yet?
-                } elsif (ref($_->{handler}) eq 'HASH'
-                             && !keys(%{$_->{handler}})) {
-                    die "Missing required option " . $opts_spec[$i-1] . "\n";
+                if ($osname eq '<>') {
+                    if ($has_arg_handler) {
+                        unless ($arg_handler_accessed) {
+                            die "Missing required command-line argument\n";
+                        }
+                    } else {
+                        unless (@{ $ary }) {
+                            die "Missing required command-line argument\n";
+                        }
+                    }
+                } else {
+                    if (ref($_->{handler}) eq 'SCALAR'
+                            && !defined(${$_->{handler}})) {
+                        die "Missing required option $osname\n";
+                        # XXX doesn't work yet?
+                    } elsif (ref($_->{handler}) eq 'ARRAY' &&
+                                 !@{$_->{handler}}) {
+                        die "Missing required option $osname\n";
+                        # XXX doesn't work yet?
+                    } elsif (ref($_->{handler}) eq 'HASH'
+                                 && !keys(%{$_->{handler}})) {
+                        die "Missing required option $osname\n";
+                    }
                 }
             }
             # supply default value

@@ -16,6 +16,8 @@ my %opts = (
     array => [],
 );
 
+my @argv;
+
 my $res = GetOptions(
     'flag1|1'    => \$opts{flag1},
     'flag2|f'    => \$opts{flag2},
@@ -76,7 +78,8 @@ _
         exit 0;
     },
     '<>' => optspec(
-        handler => sub{},
+        handler => sub { push @argv, $_[0] },
+        required => 1,
         completion => sub {
             require Complete::Util;
             my %args = @_;
@@ -92,6 +95,7 @@ print "flag1: ", $opts{flag1} ? 1:0, "\n";
 print "flag2: ", $opts{flag2} ? 1:0, "\n";
 print "int: $opts{int}\n";
 print "module: [", join(", ", @{$opts{module}}), "]\n";
+print "argv: [", join(", ", @argv), "]\n";
 
 # ABSTRACT: Script to demonstrate Getopt::Long::More
 # PODNAME:
