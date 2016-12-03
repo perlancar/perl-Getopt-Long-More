@@ -9,7 +9,8 @@ use Exporter qw(import);
 
 our @EXPORT    = qw(GetOptions optspec OptSpec);
 our @EXPORT_OK = qw(HelpMessage VersionMessage Configure
-                    GetOptionsFromArray GetOptionsFromString);
+                    GetOptionsFromArray GetOptionsFromString
+                    OptionsPod);
 
 sub optspec {
     Getopt::Long::More::OptSpec->new(@_);
@@ -27,15 +28,15 @@ sub VersionMessage {
 
 sub Configure {
     require Getopt::Long;
-    goto &Getopt::Long::VersionMessage;
+    goto &Getopt::Long::Configure;
 }
 
-# copied verbatim from Getopt::Long
+# copied verbatim from Getopt::Long, with a bit of modification (add my)
 sub GetOptionsFromString(@) {
     my ($string) = shift;
     require Text::ParseWords;
     my $args = [ Text::ParseWords::shellwords($string) ];
-    $caller ||= (caller)[0];	# current context
+    my $caller ||= (caller)[0];	# current context
     my $ret = GetOptionsFromArray($args, @_);
     return ( $ret, $args ) if wantarray;
     if ( @$args ) {
@@ -58,7 +59,7 @@ my $_cur_opts_spec = [];
 sub GetOptionsFromArray {
     require Getopt::Long;
 
-    my $ary = [@{shift}]; # shallow copy
+    my $ary = [@{shift()}]; # shallow copy
 
     if (ref($_[0]) eq 'HASH') {
         # we bail out, user only specifies a list of option specs, e.g. (\%h,
@@ -71,13 +72,19 @@ sub GetOptionsFromArray {
     # provide explicit --help|?, for completion. also, we need to override the
     # option handler to use our HelpMessage.
     if ($Getopt::Long::auto_help) {
-        unshift @opts_spec, 'help|?' => sub { HelpMessage() };
+        unshift @opts_spec, 'help|?' => optspec(
+            handler => sub { HelpMessage() },
+            summary => 'Print help message and exit',
+        );
     }
     local $Getopt::Long::auto_help = 0;
 
     # provide explicit --version, for completion
     if ($Getopt::Long::auto_version) {
-        unshift @opts_spec, 'version' => sub { VersionMessage() };
+        unshift @opts_spec, 'version' => optspec(
+            handler => sub { VersionMessage() },
+            summary => 'Print program version and exit',
+        );
     }
     local $Getopt::Long::auto_version = 0;
 
@@ -96,23 +103,210 @@ sub GetOptionsFromArray {
         }
     }
 
+    # if in completion mode, do completion instead of parsing options
+  COMPLETION: {
+        my $shell;
+        if ($ENV{COMP_SHELL}) {
+            ($shell = $ENV{COMP_SHELL}) =~ s!.+/!!;
+        } elsif ($ENV{COMMAND_LINE}) {
+            $shell = 'tcsh';
+        } else {
+            $shell = 'bash';
+        }
+
+        if ($ENV{COMP_LINE} || $ENV{COMMAND_LINE}) {
+            my ($words, $cword);
+            if ($ENV{COMP_LINE}) {
+                require Complete::Bash;
+                ($words,$cword) = @{ Complete::Bash::parse_cmdline(undef, undef, {truncate_current_word=>1}) };
+                ($words,$cword) = @{ Complete::Bash::join_wordbreak_words($words, $cword) };
+            } elsif ($ENV{COMMAND_LINE}) {
+                require Complete::Tcsh;
+                $shell //= 'tcsh';
+                ($words, $cword) = @{ Complete::Tcsh::parse_cmdline() };
+            }
+
+            my %opt_completions;
+            my $arg_completion;
+            for (my $i=0; $i < @opts_spec; $i++) {
+                if ($i % 2 == 0) {
+                    my $o = $opts_spec[$i];
+                    my $os = $opts_spec[$i+1];
+                    if (ref($os) eq 'Getopt::Long::More::OptSpec') {
+                        my $completion = $os->{completion};
+                        next unless $completion;
+                        if (ref $completion eq 'ARRAY') {
+                            $completion = sub {
+                                require Complete::Util;
+                                my %args = @_;
+                                Complete::Util::complete_array_elem(
+                                    word => $args{word},
+                                    array => $os->{completion},
+                                );
+                            };
+                        }
+                        if ($o eq '<>') {
+                            $arg_completion = $completion;
+                        } else {
+                            $opt_completions{$o} = $completion;
+                        }
+                    }
+                }
+            }
+
+            my $comp = sub {
+                my %args = @_;
+                if ($args{type} eq 'optval' && $opt_completions{ $args{ospec} }) {
+                    return $opt_completions{ $args{ospec} }->(%args);
+                } elsif ($args{type} eq 'arg' && $arg_completion) {
+                    return $arg_completion->(%args);
+                }
+                undef;
+            };
+
+            require Complete::Getopt::Long;
+            shift @$words; $cword--; # strip program name
+            my $compres = Complete::Getopt::Long::complete_cli_arg(
+                words => $words, cword => $cword, getopt_spec => {@go_opts_spec},
+                completion => $comp,
+                bundling => $Gteopt::Long::bundling,
+            );
+
+            if ($shell eq 'bash') {
+                require Complete::Bash;
+                print Complete::Bash::format_completion(
+                    $compres, {word=>$words->[$cword]});
+            } elsif ($shell eq 'fish') {
+                require Complete::Fish;
+                print Complete::Bash::format_completion(
+                    $compres, {word=>$words->[$cword]});
+            } elsif ($shell eq 'tcsh') {
+                require Complete::Tcsh;
+                print Complete::Tcsh::format_completion($compres);
+            } elsif ($shell eq 'zsh') {
+                require Complete::Zsh;
+                print Complete::Zsh::format_completion($compres);
+            } else {
+                die "Unknown shell '$shell'";
+            }
+
+            exit 0;
+        }
+    }
+
     my $res = Getopt::Long::GetOptionsFromArray($ary, @go_opts_spec);
 
-    # TODO: set default value
-
-    # TODO: check required
+    $i = -1;
+    for (@opts_spec) {
+        $i++;
+        if ($i % 2 && ref($_) eq 'Getopt::Long::More::OptSpec') {
+            # check required
+            if ($_->{required}) {
+                if (ref($_->{handler}) eq 'SCALAR'
+                        && !defined(${$_->{handler}})) {
+                    die "Missing required option " . $opts_spec[$i-1] . "\n";
+                # XXX doesn't work yet?
+                } elsif (ref($_->{handler}) eq 'ARRAY' &&
+                             !@{$_->{handler}}) {
+                    die "Missing required option " . $opts_spec[$i-1] . "\n";
+                # XXX doesn't work yet?
+                } elsif (ref($_->{handler}) eq 'HASH'
+                             && !keys(%{$_->{handler}})) {
+                    die "Missing required option " . $opts_spec[$i-1] . "\n";
+                }
+            }
+            # supply default value
+            if (defined $_->{default}) {
+                if (ref($_->{handler}) eq 'SCALAR'
+                        && !defined(${$_->{handler}})) {
+                    ${$_->{handler}} = $_->{default};
+                # XXX doesn't work yet?
+                } elsif (ref($_->{handler}) eq 'ARRAY' &&
+                             !@{$_->{handler}}) {
+                    $_->{handler} = [@{ $_->{default} }]; # shallow copy
+                # XXX doesn't work yet?
+                } elsif (ref($_->{handler}) eq 'HASH' &&
+                             !keys(%{$_->{handler}})) {
+                    $_->{handler} = { %{ $_->{default} } }; # shallow copy
+                }
+            }
+        }
+    }
 
     $res;
 }
 
 sub HelpMessage {
     my $opts_spec = @_ ? [@_] : $_cur_opts_spec;
-    # TODO
+    my $i = -1;
+    my @entries;
+    my $max_opt_spec_len = 0;
+    for (my $i=0; $i < @$opts_spec; $i++) {
+        if ($i % 2 == 0) {
+            # normalize dashes at the front
+            my $osname = $opts_spec->[$i];
+            next if $osname eq '<>';
+            $osname =~ s/^-+//;
+            (my $oname = $osname) =~ s/[=|].*//;
+            $osname = length($oname) > 1 ? "--$osname" : "-$osname";
+
+            push @entries, [$osname, ""];
+            my $len = length($osname);
+            $max_opt_spec_len = $len if $max_opt_spec_len < $len;
+            my $os = $opts_spec->[$i+1];
+            if (ref($os) eq 'Getopt::Long::More::OptSpec') {
+                $entries[-1][1] ||= $os->{summary};
+            }
+        }
+    }
+
+    my $prog = $0;
+    $prog =~ s!.+[/\\]!!;
+
+    print join(
+        "",
+        "Usage: $prog [options]\n",
+        "Options:\n",
+        map {
+            sprintf("  %-${max_opt_spec_len}s  %s\n", $_->[0], $_->[1])
+        } @entries,
+    );
+    exit 0;
 }
 
 sub OptionsPod {
     my $opts_spec = @_ ? [@_] : $_cur_opts_spec;
-    # TODO
+    my $i = -1;
+    my @entries;
+    for (my $i=0; $i < @$opts_spec; $i++) {
+        if ($i % 2 == 0) {
+            # normalize dashes at the front
+            my $osname = $opts_spec->[$i];
+            next if $osname eq '<>';
+            $osname =~ s/^-+//;
+            (my $oname = $osname) =~ s/[=|].*//;
+            $osname = length($oname) > 1 ? "--$osname" : "-$osname";
+
+            push @entries, [$osname, "", ""];
+            my $os = $opts_spec->[$i+1];
+            if (ref($os) eq 'Getopt::Long::More::OptSpec') {
+                $entries[-1][1] ||= $os->{summary};
+                $entries[-1][2] ||= $os->{description};
+            }
+        }
+    }
+
+    my @res;
+
+    push @res, "=head1 OPTIONS\n\n";
+    for (@entries) {
+        push @res, "=head2 $_->[0]\n\n";
+        push @res, "$_->[1]\n\n" if length $_->[1];
+        push @res, "$_->[2]\n\n" if length $_->[2];
+    }
+
+    join("", @res);
+
 }
 
 package # hide from PAUSE indexer
@@ -301,11 +495,36 @@ C<summary> and C<description> properties of optspec objects. Example result:
 
 =head1 COMPLETION
 
-Getopt::Long::Mode supports shell tab completion.
+Getopt::Long::Mode supports shell tab completion. To activate tab completion,
+put your script (e.g. C<myapp.pl>) in C<PATH> and in bash shell type:
+
+ % complete -C myapp.pl myapp.pl
+
+You can then complete option names (or option values or command-line arguments
+too, if you provide C<completion> properties). You can also use L<shcompgen> to
+activate shell completion; shcompgen supports several shells and various
+modules.
 
 Tab completion functionality is provided by L<Complete::Getopt::Long>. Note that
 this module assumes C<no_ignore_case> and does not support things like
 C<getopt_compat> (starting option with C<+> instead of C<-->).
+
+
+=head1 FAQ
+
+=head2 How do I provide completion for command-line arguments:
+
+Use the option spec C<< <> >>:
+
+ GetOptions(
+     ...
+     '<>' => optspec(
+         handler => \&process,
+         completion => sub {
+             ...
+         },
+     ),
+ );
 
 
 =head1 SEE ALSO
