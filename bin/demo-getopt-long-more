@@ -7,6 +7,8 @@ use strict;
 use warnings;
 use Getopt::Long::More;
 
+Getopt::Long::More::Configure('auto_help', 'auto_version');
+
 my %opts = (
     cols => 1,
     bg   => 0,
@@ -20,12 +22,18 @@ my $res = GetOptions(
     'bool|b!'    => \$opts{bool},
     'int=i'      => optspec(
         handler => \$opts{int},
+        summary => 'An integer number',
         default => 42,
     ),
     'module|M=s@' => optspec(
         required => 1,
         handler => $opts{module},
         summary => 'Module name(s)',
+        description => <<'_',
+One or more module names.
+
+Each module must be valid Perl module name.
+_
         completion => sub {
             require Complete::Util;
             my %args = @_;
@@ -63,6 +71,10 @@ my $res = GetOptions(
                                        word=>$args{word});
         },
     ),
+    'show-pod' => sub {
+        print Getopt::Long::More::OptionsPod;
+        exit 0;
+    },
     '<>' => optspec(
         handler => sub{},
         completion => sub {

@@ -250,12 +250,14 @@ sub HelpMessage {
             (my $oname = $osname) =~ s/[=|].*//;
             $osname = length($oname) > 1 ? "--$osname" : "-$osname";
 
-            push @entries, [$osname, ""];
+            push @entries, [$osname, "", "", 0, undef]; # [opt, summary, desc, required?, default]
             my $len = length($osname);
             $max_opt_spec_len = $len if $max_opt_spec_len < $len;
             my $os = $opts_spec->[$i+1];
             if (ref($os) eq 'Getopt::Long::More::OptSpec') {
                 $entries[-1][1] ||= $os->{summary};
+                $entries[-1][3] = 1 if $os->{required};
+                $entries[-1][4] = $os->{default};
             }
         }
     }
@@ -266,9 +268,14 @@ sub HelpMessage {
     print join(
         "",
         "Usage: $prog [options]\n",
-        "Options:\n",
+        "Options (* marks required option):\n",
         map {
-            sprintf("  %-${max_opt_spec_len}s  %s\n", $_->[0], $_->[1])
+            sprintf("  %-${max_opt_spec_len}s%s  %s%s\n",
+                    $_->[0],
+                    $_->[3] ? "*" : " ",
+                    $_->[1],
+                    defined($_->[4]) ? " (default: $_->[4])" : "",
+                )
         } @entries,
     );
     exit 0;
@@ -287,11 +294,13 @@ sub OptionsPod {
             (my $oname = $osname) =~ s/[=|].*//;
             $osname = length($oname) > 1 ? "--$osname" : "-$osname";
 
-            push @entries, [$osname, "", ""];
+            push @entries, [$osname, "", "", 0, undef]; # [opt, summary, desc, required?, default]
             my $os = $opts_spec->[$i+1];
             if (ref($os) eq 'Getopt::Long::More::OptSpec') {
                 $entries[-1][1] ||= $os->{summary};
                 $entries[-1][2] ||= $os->{description};
+                $entries[-1][3] = 1 if $os->{required};
+                $entries[-1][4] = $os->{default};
             }
         }
     }
@@ -300,7 +309,10 @@ sub OptionsPod {
 
     push @res, "=head1 OPTIONS\n\n";
     for (@entries) {
-        push @res, "=head2 $_->[0]\n\n";
+        my @notes;
+        if ($_->[3]) { push @notes, "required" }
+        if (defined $_->[4]) { push @notes, "default: $_->[4]" }
+        push @res, "=head2 $_->[0]", (@notes ? " (".join(", ", @notes).")" : ""), "\n\n";
         push @res, "$_->[1]\n\n" if length $_->[1];
         push @res, "$_->[2]\n\n" if length $_->[2];
     }
