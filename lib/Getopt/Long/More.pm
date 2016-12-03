@@ -386,10 +386,10 @@ _
 
 This module is a wrapper and drop-in replacement for L<Getopt::Long>. It
 provides the same interface as Getopt::Long and, unlike other wrappers like
-L<Getopt::Long::Complete> it does not change default configuration and all
-Getopt::Long configuration are supported. In fact, Getopt::Long::More behaves
-much like Getopt::Long until you start to use optspec object as one or more
-option handlers.
+L<Getopt::Long::Complete> or L<Getopt::Long::Modern> it does not change default
+configuration and all Getopt::Long configuration are supported. In fact,
+Getopt::Long::More behaves much like Getopt::Long until you start to use optspec
+object as one or more option handlers.
 
 
 =head1 OPTSPEC OBJECT
