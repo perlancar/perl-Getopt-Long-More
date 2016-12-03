@@ -329,6 +329,8 @@ sub new {
 1;
 # ABSTRACT: Like Getopt::Long, but with more stuffs
 
+=for Pod::Coverage ^(OptSpec)$
+
 =head1 ABSTRACT
 
  use Getopt::Long::More; # imports GetOptions as well as optspec; you can also
@@ -458,7 +460,7 @@ See Getopt::Long documentation.
 
 =head2 HelpMessage(@opts_spec) => str
 
-Will generate a usage/help message. Sample result:
+Will print a usage/help message and exit. Sample result:
 
  myapp [options]
 
@@ -467,6 +469,10 @@ Will generate a usage/help message. Sample result:
    --debug       Enable debug mode
    --help|?      Print help message and exit
    --version     Print usage message and exit
+
+=head2 VersionMessage
+
+See Getopt::Long documentation.
 
 =head2 OptionsPod(@opts_spec) => str
 
@@ -491,6 +497,10 @@ C<summary> and C<description> properties of optspec objects. Example result:
  =head2 --help
 
  Display help message and exit.
+
+=head2 optspec(%props) => obj
+
+Create optspec object. See L</"OPTSPEC OBJECT">.
 
 
 =head1 COMPLETION
