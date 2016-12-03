@@ -1,5 +1,12 @@
 Revision history for Getopt-Long-More
 
+0.002   2016-12-03 (PERLANCAR)
+
+	- No functional changes.
+
+	- Fix POD section name.
+
+
 0.001   2016-12-04 (PERLANCAR)
 
         - First release.
