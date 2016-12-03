@@ -1,5 +1,14 @@
 Revision history for Getopt-Long-More
 
+0.003   2016-12-03 (PERLANCAR)
+
+	- Tweak usage and POD message.
+
+	- Update demo script.
+
+	- [doc] Mention Getopt::Long::Modern.
+
+
 0.002   2016-12-03 (PERLANCAR)
 
 	- No functional changes.
