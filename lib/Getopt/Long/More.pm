@@ -331,7 +331,7 @@ sub new {
 
 =for Pod::Coverage ^(OptSpec)$
 
-=head1 ABSTRACT
+=head1 SYNOPSIS
 
  use Getopt::Long::More; # imports GetOptions as well as optspec; you can also
                          # explicitly import Configure, GetOptionsFromArray,
