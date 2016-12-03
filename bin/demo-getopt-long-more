@@ -1,0 +1,98 @@
+#!perl
+
+# DATE
+# VERSION
+
+use strict;
+use warnings;
+use Getopt::Long::More;
+
+my %opts = (
+    cols => 1,
+    bg   => 0,
+    module => [],
+    array => [],
+);
+
+my $res = GetOptions(
+    'flag1|1'    => \$opts{flag1},
+    'flag2|f'    => \$opts{flag2},
+    'bool|b!'    => \$opts{bool},
+    'int=i'      => optspec(
+        handler => \$opts{int},
+        default => 42,
+    ),
+    'module|M=s@' => optspec(
+        required => 1,
+        handler => $opts{module},
+        summary => 'Module name(s)',
+        completion => sub {
+            require Complete::Util;
+            my %args = @_;
+            return {
+                words => Complete::Util::complete_array_elem(
+                    array=>[
+                        "Complete::Util",
+                        "Text::ANSITable",
+                        "Text::ANSI::",
+                        "Text::ANSI::Util",
+                    ],
+                    word=>$args{word},
+                ),
+                path_sep => '::',
+            };
+        },
+    ),
+    'float|F=f' => \$opts{float},
+    'str|text|S=s' => \$opts{str},
+    'array=s@' => $opts{array},
+    'int-comp-array=i' => optspec(
+        handler => \$opts{int_comp_array},
+        completion => sub {
+            require Complete::Util;
+            my %args = @_;
+            Complete::Util::complete_array_elem(array=>[1..10], word=>$args{word});
+        },
+    ),
+    'str-comp-sub=s' => optspec(
+        handler => \$opts{str_comp_sub},
+        completion => sub {
+            require Complete::Util;
+            my %args = @_;
+            return complete_array_elem(array=>[map {"$args{word}$_"} "a".."z"],
+                                       word=>$args{word});
+        },
+    ),
+    '<>' => optspec(
+        handler => sub{},
+        completion => sub {
+            require Complete::Util;
+            my %args = @_;
+            my $argpos = $args{argpos};
+            Complete::Util::complete_array_elem(
+                array=>["arg$argpos-a", "arg$argpos-b"], word=>$args{word});
+        },
+    ),
+);
+
+print +($res ? "Getopt succeeded" : "Getopt failed"), "\n";
+print "flag1: ", $opts{flag1} ? 1:0, "\n";
+print "flag2: ", $opts{flag2} ? 1:0, "\n";
+print "int: $opts{int}\n";
+print "module: [", join(", ", @{$opts{module}}), "]\n";
+
+# ABSTRACT: Script to demonstrate Getopt::Long::More
+# PODNAME:
+
+=head1 SYNOPSIS
+
+Activate completion using (can be put in your bash startup file):
+
+ % complete -C demo-getopt-long-more demo-getopt-long-more
+
+Test completion:
+
+ % demo-getopt-long-more <tab>
+ % demo-getopt-long-more -<tab>
+ % demo-getopt-long-more --int 1 -<tab>
+ # and so on
