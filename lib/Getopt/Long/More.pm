@@ -247,17 +247,21 @@ sub GetOptionsFromArray {
             }
             # supply default value
             if (defined $_->{default}) {
-                if (ref($_->{handler}) eq 'SCALAR'
-                        && !defined(${$_->{handler}})) {
-                    ${$_->{handler}} = $_->{default};
-                # XXX doesn't work yet?
-                } elsif (ref($_->{handler}) eq 'ARRAY' &&
-                             !@{$_->{handler}}) {
-                    $_->{handler} = [@{ $_->{default} }]; # shallow copy
-                # XXX doesn't work yet?
-                } elsif (ref($_->{handler}) eq 'HASH' &&
-                             !keys(%{$_->{handler}})) {
-                    $_->{handler} = { %{ $_->{default} } }; # shallow copy
+                if ($osname eq '<>') {
+                    # currently ignored
+                } else {
+                    if (ref($_->{handler}) eq 'SCALAR'
+                            && !defined(${$_->{handler}})) {
+                        ${$_->{handler}} = $_->{default};
+                        # XXX doesn't work yet?
+                    } elsif (ref($_->{handler}) eq 'ARRAY' &&
+                                 !@{$_->{handler}}) {
+                        $_->{handler} = [@{ $_->{default} }]; # shallow copy
+                        # XXX doesn't work yet?
+                    } elsif (ref($_->{handler}) eq 'HASH' &&
+                                 !keys(%{$_->{handler}})) {
+                        $_->{handler} = { %{ $_->{default} } }; # shallow copy
+                    }
                 }
             }
         }
