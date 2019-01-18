@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use Test::Exception;
 use Test::More 0.98;
 
 use Getopt::Long::More qw(optspec);
@@ -56,6 +57,18 @@ use Getopt::Long::More qw(optspec);
         expected_argv => [qw//],
     );
 }
+
+subtest "optspec: no handler property -> dies" => sub {
+    dies_ok { optspec() };
+};
+
+subtest "optspec: unknown property -> dies" => sub {
+    dies_ok { optspec(handler=>sub{}, foo=>1) };
+};
+
+subtest "optspec: extra properties allowed" => sub {
+    lives_ok { optspec(handler=>sub{}, _foo=>1, 'x.bar'=>2) };
+};
 
 {
     my $opts = {};

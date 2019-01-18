@@ -365,6 +365,7 @@ sub new {
         die "You must specify handler in optspec";
     }
     for (keys %$obj) {
+        next if /\A(x\.|_)/;
         unless (/\A(handler|required|default|summary|description|completion)\z/) {
             die "Unknown optspec property '$_'";
         }
@@ -423,6 +424,10 @@ _
                  array => [ ... ],
              );
          },
+
+         # other properties that start with 'x.' or '_' are allowed
+         'x.debug' => 'blah',
+         _app_code => {foo=>1},
      ),
  );
 
@@ -454,8 +459,9 @@ name-property value pairs:
  )
 
 At least the C<handler> property must be specified, as this will be passed to
-Getopt::Long when parsing options. In addition to that, these other properties
-are also recognized:
+Getopt::Long when parsing options. Properties with names that with C<x.> or C<_>
+are ignored; you can use this fact to store whatever additional information you
+wish. In addition to that, these other properties are also recognized:
 
 =head2 required => bool
 
