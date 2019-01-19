@@ -67,7 +67,11 @@ subtest "optspec: unknown property -> dies" => sub {
 };
 
 subtest "optspec: extra properties allowed" => sub {
-    lives_ok { optspec(handler=>sub{}, _foo=>1, 'x.bar'=>2) };
+    lives_ok { optspec(handler=>sub{}, _foo=>1, 'x.bar'=>2, _=>{baz=>3}, x=>{qux=>4}) };
+};
+
+subtest "optspec: invalid extra properties -> dies" => sub {
+    dies_ok { optspec(handler=>sub{}, 'x.'=>1) };
 };
 
 {

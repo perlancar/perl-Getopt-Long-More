@@ -365,7 +365,7 @@ sub new {
         die "You must specify handler in optspec";
     }
     for (keys %$obj) {
-        next if /\A(x\.|_)/;
+        next if /\A(x|x\..+|_.*)\z/;
         unless (/\A(handler|required|default|summary|description|completion)\z/) {
             die "Unknown optspec property '$_'";
         }
