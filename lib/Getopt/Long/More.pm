@@ -92,31 +92,21 @@ sub GetOptionsFromArray {
     $_cur_opts_spec = [@opts_spec];
 
     # strip the optspec objects
-    my $i = -1;
     my @go_opts_spec;
-    my $osname;
+    my $prev;
     my $has_arg_handler;
     my $arg_handler_accessed;
-    for my $e (@opts_spec) {
-        $i++;
-        if ($i % 2 == 0) {
-            $osname = $e;
-            push @go_opts_spec, $e;
-        } else {
-            if (ref($e) eq 'Getopt::Long::More::OptSpec') {
-                if ($osname eq '<>') {
-                    $has_arg_handler++;
-                    push @go_opts_spec, sub {
-                        $arg_handler_accessed++;
-                        $e->{handler}->(@_);
-                    };
-                } else {
-                    push @go_opts_spec, $e->{handler};
-                }
-            } else {
-                push @go_opts_spec, $e;
-            }
-        }
+      for my $e (@opts_spec) {
+        ref($e) ne 'Getopt::Long::More::OptSpec'  and do { push @go_opts_spec, $e; next            };
+        $prev   ne '<>'                           and do { push @go_opts_spec, $e->{handler}; next };
+      OTHERWISE:
+        $has_arg_handler++;
+        push @go_opts_spec, sub {
+          $arg_handler_accessed++;
+          $e->{handler}->(@_);
+        };
+    } continue {
+      $prev = $e;
     }
 
     # if in completion mode, do completion instead of parsing options
@@ -212,10 +202,10 @@ sub GetOptionsFromArray {
 
     my $res = Getopt::Long::GetOptionsFromArray($ary, @go_opts_spec);
 
-    $i = -1;
+    my $i = -1;
     for (@opts_spec) {
         $i++;
-        if ($i % 2 && ref($_) eq 'Getopt::Long::More::OptSpec') {
+        if ($i > 0 && ref($_) eq 'Getopt::Long::More::OptSpec') {
             my $osname = $opts_spec[$i-1];
 
             # check required

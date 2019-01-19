@@ -177,9 +177,9 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-TODO: { # TABULON : currently fails due to :
-        #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3)
-    local $TODO = "Fix gh-issue#3 : Mixing implicit/explicit 'linkages'...";
+{ # TABULON : This passes now, suggesting that [ISSUE #3] should now be fixed.
+  #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3).
+
     my $opts = {};
     test_getoptions(
         name => 'optspec: mixed implict/explicit linkage',
