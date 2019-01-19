@@ -149,6 +149,90 @@ subtest "optspec: invalid extra properties -> dies" => sub {
     );
 }
 
+{ # TABULON : Passes already with v0.004, as expected.
+    my $opts = {};
+    test_getoptions(
+        name => 'basic: with hash-storage',
+        opts_spec => [$opts, 'foo=s' => \$opts->{foo}],
+        argv => [qw/--foo bar/],
+        opts => $opts,
+        expected_opts => {foo => "bar"},
+        expected_argv => [qw//],
+    );
+}
+{ # TABULON  : Also passes with v0.004, apparently because issue #3 doesn't
+  #           get triggered in the absence of OptSpec args.
+    my $opts = {};
+    test_getoptions(
+        name => 'basic: mixed implict/explicit linkage',
+        opts_spec =>  [
+          'foo=s', \$opts->{foo},
+          'bar=s',
+          'baz=s', \$opts->{baz},
+          'gaz=s', \$opts->{gaz},
+        ],
+        argv => [qw/--foo boo --baz boz --gaz gez/],
+        opts => $opts,
+        expected_opts => {foo => "boo", baz => "boz", gaz => "gez"},
+        expected_argv => [qw//],
+    );
+}
+TODO: { # TABULON : currently fails due to :
+        #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3)
+    local $TODO = "Fix gh-issue#3 : Mixing implicit/explicit 'linkages'...";
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: mixed implict/explicit linkage',
+        opts_spec =>  [
+          'foo=s', optspec(handler => \$opts->{foo} ),
+          'bar=s',
+          'baz=s', optspec(handler => \$opts->{baz} ),
+          'gaz=s', \$opts->{gaz},
+        ],
+        argv => [qw/--foo boo --baz boz --gaz gez/],
+        opts => $opts,
+        expected_opts => {foo => "boo", baz => "boz", gaz => "gez"},
+        expected_argv => [qw//],
+    );
+}
+TODO: { # TABULON : currently fails due to :
+        #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
+    local $TODO = 'Fix gh-issue#1 : Incompatibilty with "hash storage" mode...';
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: with "hash-storage"',
+        opts_spec => [
+          $opts,
+          'foo=s', optspec(handler => \$opts->{foo} ),
+          'bar=s',
+        ],
+        argv => [qw/--foo boo --bar bur/],
+        opts => $opts,
+        expected_opts => {foo => "boo", bar => "bur"},
+        expected_argv => [qw//],
+    );
+}
+TODO: { # TABULON : currently fails due to :
+        #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
+        #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3)
+    local $TODO = 'Requires fixing both issues #1 and #3 on github.';
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: mixed implict/explicit linkage (with "hash-storage")',
+        opts_spec => [
+          $opts,
+          'foo=s', optspec(handler => \$opts->{foo} ),
+          'bar=s',
+          'baz=s', optspec(handler => \$opts->{baz} ),
+          'gaz=s', \$opts->{gaz},
+        ],
+        argv => [qw/--foo boo --bar bur --baz boz --gaz gez/],
+        opts => $opts,
+        expected_opts => {foo => "boo", bar => "bur", baz => "boz", gaz => "gez" },
+        expected_argv => [qw//],
+    );
+}
+
 # XXX test summary
 # XXX test pod
 
