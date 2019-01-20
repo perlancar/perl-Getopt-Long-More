@@ -63,7 +63,7 @@ subtest "optspec: no property is required" => sub {
 };
 
 subtest "optspec: unknown property -> dies" => sub {
-    dies_ok { optspec(handler=>sub{}, foo=>1) };
+    dies_ok { optspec(foo=>1) };
 };
 
 subtest "optspec: extra properties allowed" => sub {
@@ -149,7 +149,7 @@ subtest "optspec: invalid extra properties -> dies" => sub {
     );
 }
 
-{ # TABULON : Passes already with v0.004, as expected.
+{
     my $opts = {};
     test_getoptions(
         name => 'basic: with hash-storage',
@@ -160,8 +160,8 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-{ # TABULON  : Also passes with v0.004, apparently because issue #3 doesn't
-  #           get triggered in the absence of OptSpec args.
+
+{
     my $opts = {};
     test_getoptions(
         name => 'basic: mixed implict/explicit linkage',
@@ -177,9 +177,8 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-{ # TABULON : This passes now, suggesting that [ISSUE #3] should now be fixed.
-  #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3).
 
+{
     my $opts = {};
     test_getoptions(
         name => 'optspec: mixed implict/explicit linkage',
@@ -195,9 +194,7 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-{   # TABULON : This passes now, suggesting that [ISSUES #1] should now be fixed.
-    #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
-
+{
     my $opts = {};
     test_getoptions(
         name => 'optspec: with "hash-storage"',
@@ -212,10 +209,7 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-{   # TABULON : This passes now, suggesting that ISSUES #1 & #3 should now be fixed.
-    #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
-    #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3)
-
+{
     my $opts = {};
     test_getoptions(
         name => 'optspec: mixed implict/explicit linkage (with "hash-storage")',
