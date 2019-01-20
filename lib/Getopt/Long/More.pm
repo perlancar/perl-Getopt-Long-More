@@ -353,9 +353,6 @@ package # hide from PAUSE indexer
 sub new {
     my $class = shift;
     my $obj = bless {@_}, $class;
-    unless (exists $obj->{handler}) {
-        die "You must specify handler in optspec";
-    }
     for (keys %$obj) {
         next if /\A(x|x\..+|_.*)\z/;
         unless (/\A(handler|required|default|summary|description|completion)\z/) {
@@ -384,7 +381,7 @@ sub new {
 
      # but if you want to specify extra stuffs...
      'baz'   => optspec(
-         # at least specify this, for Getopt::Long
+         # will be passed to Getopt::Long
          handler => \$opts{baz},
 
          # specify that this option is required
@@ -437,9 +434,9 @@ object as one or more option handlers.
 =head1 OPTSPEC OBJECT
 
 In addition to using scalarref, arrayref, hashref, or coderef as the option
-handler as Getopt::Long allows, Getopt::Long::More also allows using optspec
-object as option handler. This allows you to specify more stuffs. Optspec object
-is created using the C<optspec> function which accepts a list of property
+handler ("linkage") as Getopt::Long allows, Getopt::Long::More also allows using
+optspec object as the linkage. This allows you to specify more stuffs. Optspec
+object is created using the C<optspec> function which accepts a list of property
 name-property value pairs:
 
  '--fruit=s' => optspec(

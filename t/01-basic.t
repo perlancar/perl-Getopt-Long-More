@@ -58,8 +58,8 @@ use Getopt::Long::More qw(optspec);
     );
 }
 
-subtest "optspec: no handler property -> dies" => sub {
-    dies_ok { optspec() };
+subtest "optspec: no property is required" => sub {
+    lives_ok { optspec() };
 };
 
 subtest "optspec: unknown property -> dies" => sub {
