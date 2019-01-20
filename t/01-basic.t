@@ -195,9 +195,9 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-TODO: { # TABULON : currently fails due to :
-        #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
-    local $TODO = 'Fix gh-issue#1 : Incompatibilty with "hash storage" mode...';
+{   # TABULON : This passes now, suggesting that [ISSUES #1] should now be fixed.
+    #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
+
     my $opts = {};
     test_getoptions(
         name => 'optspec: with "hash-storage"',
@@ -212,10 +212,10 @@ TODO: { # TABULON : currently fails due to :
         expected_argv => [qw//],
     );
 }
-TODO: { # TABULON : currently fails due to :
-        #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
-        #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3)
-    local $TODO = 'Requires fixing both issues #1 and #3 on github.';
+{   # TABULON : This passes now, suggesting that ISSUES #1 & #3 should now be fixed.
+    #   - [ISSUE #1](https://github.com/perlancar/perl-Getopt-Long-More/issues/1)
+    #   - [ISSUE #3](https://github.com/perlancar/perl-Getopt-Long-More/issues/3)
+
     my $opts = {};
     test_getoptions(
         name => 'optspec: mixed implict/explicit linkage (with "hash-storage")',
