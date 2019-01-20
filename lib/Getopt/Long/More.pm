@@ -450,11 +450,9 @@ name-property value pairs:
      ...
  )
 
-At least the C<handler> property must be specified, as this will be passed to
-Getopt::Long when parsing options. Properties with names C<x>, C<x.>I<WHATEVER>,
-and C<_>I<WHATEVER> are ignored; you can use this fact to store whatever additional
-information you wish. In addition to that, these other properties are also
-recognized:
+All properties are optional. Tthe C<handler> property will be passed to
+Getopt::Long when parsing options. In addition to that, these other properties
+are also recognized:
 
 =head2 required => bool
 
@@ -482,6 +480,12 @@ Completion routine will be passed a hash argument, with at least the following
 keys: C<word> (str, the word to be completed). It is expected to return a
 completion answer structure (see L<Complete> for mor edetails) which is usually
 just an array of strings.
+
+=head2 x, x.*, _* => any
+
+You are allowed to have properties named C<x> or anything that begins with C<x.>
+or C<_>. These are ignored by Getopt::Long::More. You can use store comments or
+whatever additional information here.
 
 
 =head1 FUNCTIONS
