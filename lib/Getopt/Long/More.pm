@@ -61,10 +61,13 @@ sub GetOptionsFromArray {
 
     my $ary = shift;
 
-    if (ref($_[0]) eq 'HASH') {
-        # we bail out, user only specifies a list of option specs, e.g. (\%h,
-        # 'foo=s', 'bar!')
-        return Getopt::Long::GetOptionsFromArray($ary, @_);
+    my @go_opts_spec;
+
+    if ( ref($_[0]) ) {
+      require Scalar::Util;
+      if ( Scalar::Util::reftype ($_[0]) eq 'HASH') {
+        push @go_opts_spec, shift;  # 'hash-storage' is now directly supported
+      }
     }
 
     my @opts_spec = @_;
@@ -92,7 +95,6 @@ sub GetOptionsFromArray {
     $_cur_opts_spec = [@opts_spec];
 
     # strip the optspec objects
-    my @go_opts_spec;
     my $prev;
     my $has_arg_handler;
     my $arg_handler_accessed;
