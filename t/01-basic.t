@@ -229,7 +229,7 @@ subtest "optspec: invalid extra properties -> dies" => sub {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: evaporates when it has no handler (hash-storage mode)',
+        name => 'optspec: evaporates when it has no handler (in hash-storage mode)',
         opts_spec => [
           $opts,
           'foo=s', optspec(),
@@ -242,6 +242,80 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_opts => {foo => "boo", bar => "bur", baz => "boz", gaz => "gez" },
         expected_argv => [qw//],
     );
+}
+TODO: { # TABULO[N]: I se why this test doesn't work as expected; because of the 'eval' in test_getoptions()
+  # But, it's probably best to just delete this test anyhow, as it's something GoL can and should decide on its own.
+ local TODO = "Disabled until the test case itself is corrected or better yet, deleted. ";
+ subtest "optspec: Make sure GoL itself catches the case where '<>' has no effective handler" => sub {
+      my $opts = {};
+      test_getoptions(
+          name => 'optspec: See if GoL catches this utmost nonsense and then dies',
+          opts_spec => [
+            '<>', optspec(),
+          ],
+          argv => [],
+          opts => $opts,
+      );
+   };
+ };
+}
+{
+    our $opt_foo;
+    my $opts = {};
+    test_getoptions(
+        name => 'testsuite: can tolerate "default destinations"',  # OK.
+        opts_spec => [
+          'foo=s',
+          'baz=s', \$opts->{baz},
+        ],
+        argv => [qw/--foo boo --baz boz/],
+        opts => $opts,
+        expected_opts => {baz => "boz"},
+        expected_argv => [qw//],
+    );
+}
+{
+    our $opt_foo;   # ==> Expected default destination for option 'foo' (when using GoL's "legacy" call style, as below)
+                    # Currently, the option value silently ends up in '$Getopt::Long::More::opt_foo' :-)
+                    # This is because GoL will create it in its caller's package; which in our case is GLM (since it wraps GoL)...
+                    # This is a new GLM bug for which no github issue exists yet. Hence this comment.
+                    # BTW, resolving this bug would allow us to "use warnings" within GLM, if desired.
+    test_getoptions(  #
+        name => 'legacy: can tolerate "default destinations" [1]',  # OK.
+        opts_spec => [
+          'foo=s',
+          'baz=s',
+        ],
+        argv => [qw/--foo boo --baz boz/],
+        opts => {},
+        expected_opts => {},
+        expected_argv => [qw//],
+    );
+    TODO: {
+      local $TODO = "GoL's -legacy- 'default destinations' silently end up in GLM::* package space. [Not yet captured in a gh issue.]";
+      is($opt_foo // "[undef]" => 'boo', "legacy: default destinations' work as expected" );
+    }
+}
+{   our ($opt_foo, $opt_bar);
+    my $opts = {};
+    test_getoptions(
+        name => "optspec: evaporates when it has no handler in classic (NOT 'hash-storage') mode with 'legacy default desinations'" ,
+        opts_spec => [
+          'foo=s', optspec(),
+          'bar=s',
+          'baz=s', optspec(handler => \$opts->{baz} ),
+          'gaz=s', \$opts->{gaz},
+        ],
+        argv => [qw/--foo boo --bar bur --baz boz --gaz gez/],
+        opts => $opts,
+        expected_opts => { baz => "boz", gaz => "gez" },
+        expected_argv => [qw//],
+    );
+    TODO: {
+      local $TODO = "GoL's legacy 'default destinations' silently end up in GLM::* package space. [Not yet captured in a gh issue.]";
+      is($opt_foo // "[undef]" => 'boo', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][1]");
+      is($opt_bar // "[undef]" => 'bar', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][2]");
+    }
 }
 
 # XXX test summary
