@@ -2,7 +2,7 @@
 
         - [Bugfix] Handle "hash storage mode" of Getopt::Long (where GetOptions
           is called with a hashref as its first argument). Also fix
-          compatibility of Getopt::Long which does not require explicit
+          compatibility with Getopt::Long which does not require explicit
           "linkage" (option handler), e.g. GetOptions('foo', 'bar', 'baz') is
           allowed by Getopt::Long. (Thanks Tabulon!)
 
