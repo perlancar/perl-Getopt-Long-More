@@ -4,10 +4,10 @@
           is called with a hashref as its first argument). Also fix
           compatibility with Getopt::Long which does not require explicit
           "linkage" (option handler), e.g. GetOptions('foo', 'bar', 'baz') is
-          allowed by Getopt::Long. (Thanks Tabulon!)
+          allowed by Getopt::Long. (Thanks Tabulon!) [GH#1] [GH#3]
 
         - Allow extra optspec properties x, x.*, _* to store comments or
-          whatever.
+          whatever [GH#2].
 
 
 0.004   2016-12-03 (PERLANCAR)
