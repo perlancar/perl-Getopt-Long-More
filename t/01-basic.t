@@ -243,22 +243,6 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
-TODO: { # TABULO[N]: I se why this test doesn't work as expected; because of the 'eval' in test_getoptions()
-  # But, it's probably best to just delete this test anyhow, as it's something GoL can and should decide on its own.
- local TODO = "Disabled until the test case itself is corrected or better yet, deleted. ";
- subtest "optspec: Make sure GoL itself catches the case where '<>' has no effective handler" => sub {
-      my $opts = {};
-      test_getoptions(
-          name => 'optspec: See if GoL catches this utmost nonsense and then dies',
-          opts_spec => [
-            '<>', optspec(),
-          ],
-          argv => [],
-          opts => $opts,
-      );
-   };
- };
-}
 {
     our $opt_foo;
     my $opts = {};
