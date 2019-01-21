@@ -226,6 +226,23 @@ subtest "optspec: invalid extra properties -> dies" => sub {
         expected_argv => [qw//],
     );
 }
+{
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: evaporates when it has no handler (hash-storage mode)',
+        opts_spec => [
+          $opts,
+          'foo=s', optspec(),
+          'bar=s',
+          'baz=s', optspec(handler => \$opts->{baz} ),
+          'gaz=s', \$opts->{gaz},
+        ],
+        argv => [qw/--foo boo --bar bur --baz boz --gaz gez/],
+        opts => $opts,
+        expected_opts => {foo => "boo", bar => "bur", baz => "boz", gaz => "gez" },
+        expected_argv => [qw//],
+    );
+}
 
 # XXX test summary
 # XXX test pod

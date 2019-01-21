@@ -100,15 +100,24 @@ sub GetOptionsFromArray {
     my $prev;
     my $has_arg_handler;
     my $arg_handler_accessed;
+  MAPPING:  # Resulting in the complete EVAPORATION of OptSpec objects, replaced by their handler, if one exists.
       for my $e (@opts_spec) {
-        ref($e) ne 'Getopt::Long::More::OptSpec'  and do { push @go_opts_spec, $e; next            };
-        $prev   ne '<>'                           and do { push @go_opts_spec, $e->{handler}; next };
-      OTHERWISE:
-        $has_arg_handler++;
-        push @go_opts_spec, sub {
-          $arg_handler_accessed++;
-          $e->{handler}->(@_);
-        };
+        unless ( ref($e) eq 'Getopt::Long::More::OptSpec' ) {
+          push @go_opts_spec, $e;
+          next;
+        }
+
+        next unless exists $e->{handler};
+
+        if ( $prev  eq '<>' ) {
+          $has_arg_handler++;
+          push @go_opts_spec, sub {
+            $arg_handler_accessed++;
+            $e->{handler}->(@_);
+          };
+        } else {
+          push @go_opts_spec, $e->{handler};
+        }
     } continue {
       $prev = $e;
     }
@@ -224,7 +233,7 @@ sub GetOptionsFromArray {
                             die "Missing required command-line argument\n";
                         }
                     }
-                } else {
+                } elsif ( exists $_->{handler} ) {
                     if (ref($_->{handler}) eq 'SCALAR'
                             && !defined(${$_->{handler}})) {
                         die "Missing required option $osname\n";
@@ -237,13 +246,16 @@ sub GetOptionsFromArray {
                                  && !keys(%{$_->{handler}})) {
                         die "Missing required option $osname\n";
                     }
+                } else {
+                    warn  "Can't enforce 'required' status without also knowing the 'handler' for option '$osname'. "
+                        . "You need to provide a 'handler' to optspec() in order to benefit from that feature\n";
                 }
             }
             # supply default value
             if (defined $_->{default}) {
                 if ($osname eq '<>') {
                     # currently ignored
-                } else {
+                } elsif ( exists $_->{handler} ) {
                     if (ref($_->{handler}) eq 'SCALAR'
                             && !defined(${$_->{handler}})) {
                         ${$_->{handler}} = $_->{default};
@@ -256,6 +268,9 @@ sub GetOptionsFromArray {
                                  !keys(%{$_->{handler}})) {
                         $_->{handler} = { %{ $_->{default} } }; # shallow copy
                     }
+                } else {
+                    warn  "Can't enforce 'required' status without also knowing the 'handler' for option '$osname'. "
+                        . "You need to provide a 'handler' to optspec() in order to benefit from that feature\n";
                 }
             }
         }
