@@ -99,6 +99,28 @@ subtest "optspec: invalid extra properties -> dies" => sub {
 {
     my $opts = {};
     test_getoptions(
+        name => 'optspec: default (set, but no handler) -> dies',
+        opts_spec => ['foo=s' => optspec(default => "bar")],
+        argv => [qw/--foo qux/],
+        opts => $opts,
+        dies => 1,
+    );
+}
+TODO: {
+    local $TODO = "currently dies, but we shouldn't require handler when in hash-storage mode";
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: default (set, but no handler) -> dies',
+        opts_spec => [$opts, 'foo=s' => optspec(default => "bar")],
+        argv => [qw/--foo qux/],
+        opts => $opts,
+        expected_opts => {foo => "qux"},
+        expected_argv => [qw//],
+    );
+}
+{
+    my $opts = {};
+    test_getoptions(
         name => 'optspec: default (on <> -> ignored)',
         opts_spec => ['<>' => optspec(handler => sub{}, default => ["a","b"])],
         argv => [qw//],
@@ -131,6 +153,28 @@ subtest "optspec: invalid extra properties -> dies" => sub {
 {
     my $opts = {};
     test_getoptions(
+        name => 'optspec: required (set, but no handler) -> dies',
+        opts_spec => ['foo=s' => optspec(required => 1)],
+        argv => [qw/--foo qux/],
+        opts => $opts,
+        dies => 1,
+    );
+}
+TODO: {
+    local $TODO = "currently dies, but we shouldn't require handler when in hash-storage mode";
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: required (set, but no handler) -> dies',
+        opts_spec => [$opts, 'foo=s' => optspec(required => 1)],
+        argv => [qw/--foo qux/],
+        opts => $opts,
+        expected_opts => {foo => "qux"},
+        expected_argv => [qw//],
+    );
+}
+{
+    my $opts = {};
+    test_getoptions(
         name => 'optspec: required (on <>, unset)',
         opts_spec => ['<>' => optspec(handler => sub{}, required => 1)],
         argv => [qw//],
@@ -140,12 +184,33 @@ subtest "optspec: invalid extra properties -> dies" => sub {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: required (set)',
+        name => 'optspec: required (on <>, set)',
         opts_spec => ['<>' => optspec(handler => sub{}, required => 1)],
         argv => [qw/a b/],
         opts => $opts,
         expected_opts => {},
         expected_argv => [qw//],
+    );
+}
+{
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: required (on <>, set, but no handler, no arguments) -> dies',
+        opts_spec => ['<>' => optspec(required => 1)],
+        argv => [qw//],
+        opts => $opts,
+        dies => 1,
+    );
+}
+{
+    my $opts = {};
+    test_getoptions(
+        name => 'optspec: required (on <>, set, but no handler, has arguments) -> ok',
+        opts_spec => ['<>' => optspec(required => 1)],
+        argv => [qw/a b/],
+        opts => $opts,
+        expected_opts => {},
+        expected_argv => [qw/a b/],
     );
 }
 
