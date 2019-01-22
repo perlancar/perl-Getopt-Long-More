@@ -269,7 +269,7 @@ sub GetOptionsFromArray {
                         $_->{handler} = { %{ $_->{default} } }; # shallow copy
                     }
                 } else {
-                    die "Can't enforce 'required' status without also knowing the 'handler' for option '$osname'. "
+                    die "Can't assign 'default' without also knowing the 'handler' for option '$osname'. "
                         . "You need to provide a 'handler' to optspec() in order to benefit from that feature\n";
                 }
             }
