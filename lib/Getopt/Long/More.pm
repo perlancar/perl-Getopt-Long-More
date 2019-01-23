@@ -38,7 +38,7 @@ sub GetOptionsFromString(@) {
     my ($string) = shift;
     require Text::ParseWords;
     my $args = [ Text::ParseWords::shellwords($string) ];
-    my $caller ||= (caller)[0];	# current context
+    local $Getopt::Long::caller ||= (caller)[0];
     my $ret = GetOptionsFromArray($args, @_);
     return ( $ret, $args ) if wantarray;
     if ( @$args ) {
@@ -62,6 +62,8 @@ sub GetOptionsFromArray {
     require Getopt::Long;
 
     my $ary = shift;
+
+    local $Getopt::Long::caller ||= (caller)[0];  # grab and set this asap.
 
     my @go_opts_spec;
 

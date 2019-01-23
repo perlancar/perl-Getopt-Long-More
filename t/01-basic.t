@@ -324,12 +324,8 @@ TODO: {
     );
 }
 {
-    our $opt_foo;   # ==> Expected default destination for option 'foo' (when using GoL's "legacy" call style, as below)
-                    # Currently, the option value silently ends up in '$Getopt::Long::More::opt_foo' :-)
-                    # This is because GoL will create it in its caller's package; which in our case is GLM (since it wraps GoL)...
-                    # This is a new GLM bug for which no github issue exists yet. Hence this comment.
-                    # BTW, resolving this bug would allow us to "use warnings" within GLM, if desired.
-    test_getoptions(  #
+    our $opt_foo;      # ==> Expected default destination for option 'foo' (when using GoL's "legacy" call style, as below)
+    test_getoptions(
         name => 'legacy: can tolerate "default destinations" [1]',  # OK.
         opts_spec => [
           'foo=s',
@@ -340,15 +336,15 @@ TODO: {
         expected_opts => {},
         expected_argv => [qw//],
     );
-    TODO: {
-      local $TODO = "GoL's -legacy- 'default destinations' silently end up in GLM::* package space. [Not yet captured in a gh issue.]";
+    {
+      # DONE: Now passes, suggesting #9 is resolved.
       is($opt_foo // "[undef]" => 'boo', "legacy: default destinations' work as expected" );
     }
 }
 {   our ($opt_foo, $opt_bar);
     my $opts = {};
     test_getoptions(
-        name => "optspec: evaporates when it has no handler in classic (NOT 'hash-storage') mode with 'legacy default desinations'" ,
+        name => "optspec: evaporates when it has no handler in 'classic mode' with 'legacy default desinations'" ,
         opts_spec => [
           'foo=s', optspec(),
           'bar=s',
@@ -361,9 +357,9 @@ TODO: {
         expected_argv => [qw//],
     );
     TODO: {
-      local $TODO = "GoL's legacy 'default destinations' silently end up in GLM::* package space. [Not yet captured in a gh issue.]";
+      # DONE: Now passes, suggesting #9 is resolved.
       is($opt_foo // "[undef]" => 'boo', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][1]");
-      is($opt_bar // "[undef]" => 'bar', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][2]");
+      is($opt_bar // "[undef]" => 'bur', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][2]");
     }
 }
 
