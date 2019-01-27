@@ -67,18 +67,18 @@ subtest "optspec: unknown property -> dies" => sub {
 };
 
 subtest "optspec: extra properties allowed" => sub {
-    lives_ok { optspec(handler=>sub{}, _foo=>1, 'x.bar'=>2, _=>{baz=>3}, x=>{qux=>4}) };
+    lives_ok { optspec(destination=>sub{}, _foo=>1, 'x.bar'=>2, _=>{baz=>3}, x=>{qux=>4}) };
 };
 
 subtest "optspec: invalid extra properties -> dies" => sub {
-    dies_ok { optspec(handler=>sub{}, 'x.'=>1) };
+    dies_ok { optspec(destination=>sub{}, 'x.'=>1) };
 };
 
 {
     my $opts = {};
     test_getoptions(
         name => 'optspec: default (unset)',
-        opts_spec => ['foo=s' => optspec(handler => \$opts->{foo}, default => "bar")],
+        opts_spec => ['foo=s' => optspec(destination => \$opts->{foo}, default => "bar")],
         argv => [qw//],
         opts => $opts,
         expected_opts => {foo => "bar"},
@@ -89,7 +89,7 @@ subtest "optspec: invalid extra properties -> dies" => sub {
     my $opts = {};
     test_getoptions(
         name => 'optspec: default (set)',
-        opts_spec => ['foo=s' => optspec(handler => \$opts->{foo}, default => "bar")],
+        opts_spec => ['foo=s' => optspec(destination => \$opts->{foo}, default => "bar")],
         argv => [qw/--foo qux/],
         opts => $opts,
         expected_opts => {foo => "qux"},
@@ -99,7 +99,7 @@ subtest "optspec: invalid extra properties -> dies" => sub {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: default (set, but no handler) -> dies',
+        name => 'optspec: default (set, but no destination) -> dies',
         opts_spec => ['foo=s' => optspec(default => "bar")],
         argv => [qw/--foo qux/],
         opts => $opts,
@@ -107,10 +107,10 @@ subtest "optspec: invalid extra properties -> dies" => sub {
     );
 }
 TODO: {
-    local $TODO = "currently dies, but we shouldn't require handler when in hash-storage mode";
+    local $TODO = "currently dies, but we shouldn't require destination when in hash-storage mode";
     my $opts = {};
     test_getoptions(
-        name => 'optspec: default (set, but no handler) -> dies',
+        name => 'optspec: default (set, but no destination) -> dies',
         opts_spec => [$opts, 'foo=s' => optspec(default => "bar")],
         argv => [qw/--foo qux/],
         opts => $opts,
@@ -122,7 +122,7 @@ TODO: {
     my $opts = {};
     test_getoptions(
         name => 'optspec: default (on <> -> ignored)',
-        opts_spec => ['<>' => optspec(handler => sub{}, default => ["a","b"])],
+        opts_spec => ['<>' => optspec(destination => sub{}, default => ["a","b"])],
         argv => [qw//],
         opts => $opts,
         expected_opts => {},
@@ -134,7 +134,7 @@ TODO: {
     my $opts = {};
     test_getoptions(
         name => 'optspec: required (unset)',
-        opts_spec => ['foo=s' => optspec(handler => \$opts->{foo}, required => 1)],
+        opts_spec => ['foo=s' => optspec(destination => \$opts->{foo}, required => 1)],
         argv => [qw//],
         dies => 1,
     );
@@ -143,7 +143,7 @@ TODO: {
     my $opts = {};
     test_getoptions(
         name => 'optspec: required (set)',
-        opts_spec => ['foo=s' => optspec(handler => \$opts->{foo}, required => 1)],
+        opts_spec => ['foo=s' => optspec(destination => \$opts->{foo}, required => 1)],
         argv => [qw/--foo=bar/],
         opts => $opts,
         expected_opts => {foo => "bar"},
@@ -153,7 +153,7 @@ TODO: {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: required (set, but no handler) -> dies',
+        name => 'optspec: required (set, but no destination) -> dies',
         opts_spec => ['foo=s' => optspec(required => 1)],
         argv => [qw/--foo qux/],
         opts => $opts,
@@ -161,10 +161,10 @@ TODO: {
     );
 }
 TODO: {
-    local $TODO = "currently dies, but we shouldn't require handler when in hash-storage mode";
+    local $TODO = "currently dies, but we shouldn't require destination when in hash-storage mode";
     my $opts = {};
     test_getoptions(
-        name => 'optspec: required (set, but no handler) -> dies',
+        name => 'optspec: required (set, but no destination) -> dies',
         opts_spec => [$opts, 'foo=s' => optspec(required => 1)],
         argv => [qw/--foo qux/],
         opts => $opts,
@@ -176,7 +176,7 @@ TODO: {
     my $opts = {};
     test_getoptions(
         name => 'optspec: required (on <>, unset)',
-        opts_spec => ['<>' => optspec(handler => sub{}, required => 1)],
+        opts_spec => ['<>' => optspec(destination => sub{}, required => 1)],
         argv => [qw//],
         dies => 1,
     );
@@ -185,7 +185,7 @@ TODO: {
     my $opts = {};
     test_getoptions(
         name => 'optspec: required (on <>, set)',
-        opts_spec => ['<>' => optspec(handler => sub{}, required => 1)],
+        opts_spec => ['<>' => optspec(destination => sub{}, required => 1)],
         argv => [qw/a b/],
         opts => $opts,
         expected_opts => {},
@@ -195,7 +195,7 @@ TODO: {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: required (on <>, set, but no handler, no arguments) -> dies',
+        name => 'optspec: required (on <>, set, but no destination, no arguments) -> dies',
         opts_spec => ['<>' => optspec(required => 1)],
         argv => [qw//],
         opts => $opts,
@@ -205,7 +205,7 @@ TODO: {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: required (on <>, set, but no handler, has arguments) -> ok',
+        name => 'optspec: required (on <>, set, but no destination, has arguments) -> ok',
         opts_spec => ['<>' => optspec(required => 1)],
         argv => [qw/a b/],
         opts => $opts,
@@ -248,9 +248,9 @@ TODO: {
     test_getoptions(
         name => 'optspec: mixed implict/explicit linkage',
         opts_spec =>  [
-          'foo=s', optspec(handler => \$opts->{foo} ),
+          'foo=s', optspec(destination => \$opts->{foo} ),
           'bar=s',
-          'baz=s', optspec(handler => \$opts->{baz} ),
+          'baz=s', optspec(destination => \$opts->{baz} ),
           'gaz=s', \$opts->{gaz},
         ],
         argv => [qw/--foo boo --baz boz --gaz gez/],
@@ -265,7 +265,7 @@ TODO: {
         name => 'optspec: with "hash-storage"',
         opts_spec => [
           $opts,
-          'foo=s', optspec(handler => \$opts->{foo} ),
+          'foo=s', optspec(destination => \$opts->{foo} ),
           'bar=s',
         ],
         argv => [qw/--foo boo --bar bur/],
@@ -280,9 +280,9 @@ TODO: {
         name => 'optspec: mixed implict/explicit linkage (with "hash-storage")',
         opts_spec => [
           $opts,
-          'foo=s', optspec(handler => \$opts->{foo} ),
+          'foo=s', optspec(destination => \$opts->{foo} ),
           'bar=s',
-          'baz=s', optspec(handler => \$opts->{baz} ),
+          'baz=s', optspec(destination => \$opts->{baz} ),
           'gaz=s', \$opts->{gaz},
         ],
         argv => [qw/--foo boo --bar bur --baz boz --gaz gez/],
@@ -294,12 +294,12 @@ TODO: {
 {
     my $opts = {};
     test_getoptions(
-        name => 'optspec: evaporates when it has no handler (in hash-storage mode)',
+        name => 'optspec: evaporates when it has no destination (in hash-storage mode)',
         opts_spec => [
           $opts,
           'foo=s', optspec(),
           'bar=s',
-          'baz=s', optspec(handler => \$opts->{baz} ),
+          'baz=s', optspec(destination => \$opts->{baz} ),
           'gaz=s', \$opts->{gaz},
         ],
         argv => [qw/--foo boo --bar bur --baz boz --gaz gez/],
@@ -344,11 +344,11 @@ TODO: {
 {   our ($opt_foo, $opt_bar);
     my $opts = {};
     test_getoptions(
-        name => "optspec: evaporates when it has no handler in 'classic mode' with 'legacy default desinations'" ,
+        name => "optspec: evaporates when it has no destination in 'classic mode' with 'legacy default desinations'" ,
         opts_spec => [
           'foo=s', optspec(),
           'bar=s',
-          'baz=s', optspec(handler => \$opts->{baz} ),
+          'baz=s', optspec(destination => \$opts->{baz} ),
           'gaz=s', \$opts->{gaz},
         ],
         argv => [qw/--foo boo --bar bur --baz boz --gaz gez/],
@@ -358,8 +358,8 @@ TODO: {
     );
     TODO: {
       # DONE: Now passes, suggesting #9 is resolved.
-      is($opt_foo // "[undef]" => 'boo', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][1]");
-      is($opt_bar // "[undef]" => 'bur', "optspec: [evaporation][without a handler][in classic mode][legacy default destination][2]");
+      is($opt_foo // "[undef]" => 'boo', "optspec: [evaporation][without a destination][in classic mode][legacy default destination][1]");
+      is($opt_bar // "[undef]" => 'bur', "optspec: [evaporation][without a destination][in classic mode][legacy default destination][2]");
     }
 }
 
