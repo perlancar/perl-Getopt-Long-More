@@ -21,6 +21,8 @@ use Getopt::Long::More qw(optspec);
     );
 }
 {
+    # TABULON: supress the display of warning 'Unknown option: help' => prettier test output.
+    local *STDERR = \*STDOUT;
     my $opts = {};
     test_getoptions(
         name => 'unknown opt -> fail',
@@ -65,6 +67,30 @@ subtest "optspec: no property is required" => sub {
 subtest "optspec: unknown property -> dies" => sub {
     dies_ok { optspec(foo=>1) };
 };
+
+subtest "optspec: 'handler' is deprecated -> lives, but warns" => sub {
+    my $warns;
+    {
+    # This looks ugly, but avoids an extra dependency on Test::Warnings just for one test.
+    require IO::File;
+    local *CATCHERR = IO::File->new_tmpfile;
+    local *STDERR = \*CATCHERR; # capture STDERR (and hence any warnings)
+
+    lives_ok { optspec( handler => sub {} ) };
+
+    seek CATCHERR, 0, 0;
+    while( <CATCHERR> ) { qr/\Whandler\W.*deprecated/ and $warns=1; }
+    close  CATCHERR;
+    }
+
+    ok ($warns, "optspec: 'handler' is deprecated -> warns");
+};
+
+subtest "optspec: Illegal to provide both 'destination' and its deprecated alias 'handler' -> dies" => sub {
+    local *STDERR = \*STDOUT; # supress the depecation warning that occurs before 'die' => Just prettier test output.
+    dies_ok { optspec(destination => sub {}, handler => sub {} ) };
+};
+
 
 subtest "optspec: extra properties allowed" => sub {
     lives_ok { optspec(destination=>sub{}, _foo=>1, 'x.bar'=>2, _=>{baz=>3}, x=>{qux=>4}) };
@@ -356,8 +382,8 @@ TODO: {
         expected_opts => { baz => "boz", gaz => "gez" },
         expected_argv => [qw//],
     );
-    TODO: {
-      # DONE: Now passes, suggesting #9 is resolved.
+    {
+      # DONE: These now pass, suggesting #9 is resolved.
       is($opt_foo // "[undef]" => 'boo', "optspec: [evaporation][without a destination][in classic mode][legacy default destination][1]");
       is($opt_bar // "[undef]" => 'bur', "optspec: [evaporation][without a destination][in classic mode][legacy default destination][2]");
     }
