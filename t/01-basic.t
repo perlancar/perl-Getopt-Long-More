@@ -5,6 +5,9 @@ use warnings;
 use Test::Exception;
 use Test::More 0.98;
 
+# TABULON: ':no_end_test' for now, because existing tests don't account for warnings.
+use Test::Warnings  qw(:no_end_test);
+
 use Getopt::Long::More qw(optspec);
 
 # XXX test exports
@@ -68,21 +71,13 @@ subtest "optspec: unknown property -> dies" => sub {
     dies_ok { optspec(foo=>1) };
 };
 
+
 subtest "optspec: 'handler' is deprecated -> lives, but warns" => sub {
-    my $warns;
-    {
-    # This looks ugly, but avoids an extra dependency on Test::Warnings just for one test.
-    require IO::File;
-    local *CATCHERR = IO::File->new_tmpfile;
-    local *STDERR = \*CATCHERR; # capture STDERR (and hence any warnings)
-
-    lives_ok { optspec( handler => sub {} ) };
-
-    seek CATCHERR, 0, 0;
-    while( <CATCHERR> ) { qr/\Whandler\W.*deprecated/ and $warns=1; }
-    close  CATCHERR;
-    }
-
+    # This looks a bit cleaner (than doing by hand), but brings a dependency on Test::Warnings.
+    my @warnings = Test::Warnings::warnings( sub {;
+      lives_ok {; optspec( handler => sub {; } ) }
+    });
+    my $warns = grep { qr/\Whandler\W.*deprecated/ } @warnings;
     ok ($warns, "optspec: 'handler' is deprecated -> warns");
 };
 
