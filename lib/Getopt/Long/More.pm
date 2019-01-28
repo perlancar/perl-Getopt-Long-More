@@ -516,8 +516,11 @@ name-property value pairs:
      ...
  )
 
-All properties are optional. The C<destination> property, if present, will be passed to
-Getopt::Long when parsing options.
+All properties are optional.
+
+=head2 destination =>  ScalarRef / ArrayRef / HashRef /  CodeRef
+
+The C<destination> property, if present, will be passed to Getopt::Long when parsing options.
 
 Note that, in previous versions of this module, C<destination> was referred to as C<handler>,
 which is now B<deprecated>. At this time C<handler> is still being accepted as an
