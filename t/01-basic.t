@@ -3,10 +3,8 @@
 use strict;
 use warnings;
 use Test::Exception;
+use Test::Warn;
 use Test::More 0.98;
-
-# TABULON: ':no_end_test' for now, because existing tests don't account for warnings.
-use Test::Warnings  qw(:no_end_test);
 
 use Getopt::Long::More qw(optspec);
 
@@ -73,16 +71,15 @@ subtest "optspec: unknown property -> dies" => sub {
 
 
 subtest "optspec: 'handler' is deprecated -> lives, but warns" => sub {
-    # This looks a bit cleaner (than doing by hand), but brings a dependency on Test::Warnings.
-    my @warnings = Test::Warnings::warnings( sub {;
-      lives_ok {; optspec( handler => sub {; } ) }
-    });
-    my $warns = grep { qr/\Whandler\W.*deprecated/ } @warnings;
-    ok ($warns, "optspec: 'handler' is deprecated -> warns");
+    warnings_exist {
+      lives_ok { optspec( handler => sub { } ) }
+    }
+    [qr/\Whandler\W.*deprecated/],
+    "optspec: 'handler' is deprecated -> warns";
 };
 
 subtest "optspec: Illegal to provide both 'destination' and its deprecated alias 'handler' -> dies" => sub {
-    local *STDERR = \*STDOUT; # supress the depecation warning that occurs before 'die' => Just prettier test output.
+    local *STDERR = \*STDOUT; # supress the depecation warning before 'die' => Just prettier test output.
     dies_ok { optspec(destination => sub {}, handler => sub {} ) };
 };
 
