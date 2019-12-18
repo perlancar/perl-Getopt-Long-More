@@ -196,7 +196,7 @@ sub GetOptionsFromArray {
             if ($shell eq 'bash') {
                 require Complete::Bash;
                 print Complete::Bash::format_completion(
-                    $compres, {word=>$words->[$cword]});
+                    $compres, {word=>$words->[$cword], workaround_with_wordbreaks=>0});
             } elsif ($shell eq 'fish') {
                 require Complete::Fish;
                 print Complete::Bash::format_completion(
