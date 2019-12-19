@@ -1,3 +1,25 @@
+0.006   2019-12-18  Released-By: PERLANCAR; Urgency: medium
+
+        [BUG FIXES]
+
+	- Avoid hijacking GoL legacy default dests [GH#9]
+
+	- Evaporate OptSpec if it has no handler; do not warn if unable to
+          fulfill validation. [GH#5]
+
+	- Try using Complete::Bash's format_completion() with
+	  workaround_with_wordbreaks=0 (my use case: 'subsort by_several -A
+	  first=asc^' completes to 'subsort by_several -A asciibetically _'
+	  without this option).
+
+        [TESTS]
+
+	- Add tests for the case of optspec has required=1 or has default
+	  but no handler is supplied (ref: PR#7).
+
+	- Add more test cases, mostly related to "missing handler".
+
+
 0.005   2019-01-20  Released-By: PERLANCAR
 
         - [Bugfix] Handle "hash storage mode" of Getopt::Long (where GetOptions
