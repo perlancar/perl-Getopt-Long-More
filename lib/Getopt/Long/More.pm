@@ -367,9 +367,10 @@ sub OptionsPod {
 }
 
 package # hide from PAUSE indexer
-    Getopt::Long::More::Util;
+    Getopt::Long::More::Internal::Util;
 
-our @CARP_NOT = qw( Getopt::Long::More Getopt::Long::More::Util  Getopt::Long::More::OptSpec);
+# TAU: Named this <GLM>::Internal::Util because <GLM>::Util was already taken on CPAN.
+our @CARP_NOT = qw( Getopt::Long::More Getopt::Long::More::Internal::Util  Getopt::Long::More::OptSpec);
 
 # The subroutines here (::Util) are intended to be pretty generic
 # and so could also be used elsewhere later on.
@@ -415,7 +416,7 @@ package # hide from PAUSE indexer
     Getopt::Long::More::OptSpec;
 
 # Poor man's import....
-*map_args = \&Getopt::Long::More::Util::map_args;
+*map_args = \&Getopt::Long::More::Internal::Util::map_args;
 
 sub new {
     my $class = shift;
