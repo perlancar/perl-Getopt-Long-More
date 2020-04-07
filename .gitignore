@@ -2,7 +2,3 @@ Getopt-Long-More-*
 .build
 *~
 nytprof*
-
-# GOL's test-suite is author-only at this time. Hence, we can probably 
-# get away with git-ignoring them (no big deal, since they are auto-generated)
-xt/gol-*
