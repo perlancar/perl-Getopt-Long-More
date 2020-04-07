@@ -2,7 +2,9 @@
 
 package Getopt::Long::More;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use strict;
