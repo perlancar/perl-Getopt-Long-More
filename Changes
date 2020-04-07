@@ -14,8 +14,8 @@
 
         [TESTS]
 
-	- Add tests for the case of optspec has required=1 or has default
-	  but no handler is supplied (ref: PR#7).
+	- Add tests for the case of optspec has required=1 or has default but no
+	  handler is supplied (ref: GH#7).
 
 	- Add more test cases, mostly related to "missing handler".
 
