@@ -23,14 +23,14 @@ my $res = GetOptions(
     'flag2|f'    => \$opts{flag2},
     'bool|b!'    => \$opts{bool},
     'int=i'      => optspec(
-        handler => \$opts{int},
-        summary => 'An integer number',
-        default => 42,
+        destination => \$opts{int},
+        summary     => 'An integer number',
+        default     => 42,
     ),
     'module|M=s@' => optspec(
-        required => 1,
-        handler => $opts{module},
-        summary => 'Module name(s)',
+        required    => 1,
+        destination => $opts{module},
+        summary     => 'Module name(s)',
         description => <<'_',
 One or more module names.
 
@@ -57,16 +57,16 @@ _
     'str|text|S=s' => \$opts{str},
     'array=s@' => $opts{array},
     'int-comp-array=i' => optspec(
-        handler => \$opts{int_comp_array},
-        completion => sub {
+        destination => \$opts{int_comp_array},
+        completion  => sub {
             require Complete::Util;
             my %args = @_;
             Complete::Util::complete_array_elem(array=>[1..10], word=>$args{word});
         },
     ),
     'str-comp-sub=s' => optspec(
-        handler => \$opts{str_comp_sub},
-        completion => sub {
+        destination => \$opts{str_comp_sub},
+        completion  => sub {
             require Complete::Util;
             my %args = @_;
             return complete_array_elem(array=>[map {"$args{word}$_"} "a".."z"],
@@ -78,9 +78,9 @@ _
         exit 0;
     },
     '<>' => optspec(
-        handler => sub { push @argv, $_[0] },
-        required => 1,
-        completion => sub {
+        destination => sub { push @argv, $_[0] },
+        required    => 1,
+        completion  => sub {
             require Complete::Util;
             my %args = @_;
             my $argpos = $args{argpos};
