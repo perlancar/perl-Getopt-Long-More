@@ -5,10 +5,6 @@
 #   Author: tabulon [TAU]
 #   Project: Getopt::Long::More
 # -----
-# COPYRIGHT & LICENSE:
-#   Copyright 2019 - 2020 /tabulo.*/i
-#   License: Artistic License 2.0
-# -----
 # NOTES:
 #   
 #   
@@ -22,17 +18,16 @@ GLM = $(GOL)::More
 
 SHELL:=/usr/bin/env bash
 
-
 all: build-tests
 
-build-tests: gol-authentic gol-conformance
+build-tests: gol-authentique gol-conformance
 
-#.PHONY: gol-authentic
-gol-authentic:
+.PHONY: gol-authentique
+gol-authentique:
 	../maint/fetch-gol-tests "$@"
 
-#.PHONY: gol-conformance
-gol-conformance: gol-authentic
+.PHONY: gol-conformance
+gol-conformance: gol-authentique
 	../maint/adapt-gol-tests "$<" "$@"
 
 clean:
