@@ -14,7 +14,7 @@ our @EXPORT_OK = qw(HelpMessage VersionMessage Configure
                     GetOptionsFromArray GetOptionsFromString
                     OptionsPod);
 
-
+# Public API @ [GLM / OptSpec ]
 sub optspec {
     Getopt::Long::More::OptSpec->new(@_);
 }
@@ -24,6 +24,7 @@ sub OptSpec {
     Getopt::Long::More::OptSpec->new(@_);
 }
 
+# Public API @ [GOL]
 sub import {
     require Getopt::Long;
     goto &Getopt::Long::import;
@@ -379,7 +380,7 @@ sub OptionsPod {
 }
 
 package Getopt::Long::More::Parser;
-
+use Getopt::Long;
 our @ISA=(qw/Getopt::Long::Parser/);
 
 # copied verbatim from Getopt::Long (except for the assignment of '$Getopt::Long::caller')
