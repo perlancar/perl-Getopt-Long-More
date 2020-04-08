@@ -9,13 +9,14 @@ package Getopt::Long::More;
 
 use strict;
 
-use Exporter qw(import);
+use Exporter;
 
 our @EXPORT    = qw(GetOptions optspec OptSpec);
 our @EXPORT_OK = qw(HelpMessage VersionMessage Configure
                     GetOptionsFromArray GetOptionsFromString
                     OptionsPod);
 
+# Public API @ [GLM / OptSpec ]
 sub optspec {
     Getopt::Long::More::OptSpec->new(@_);
 }
@@ -23,6 +24,12 @@ sub optspec {
 # synonym for convenience
 sub OptSpec {
     Getopt::Long::More::OptSpec->new(@_);
+}
+
+# Public API @ [GOL]
+sub import {
+    require Getopt::Long;
+    goto &Getopt::Long::import;
 }
 
 sub VersionMessage {
@@ -35,12 +42,18 @@ sub Configure {
     goto &Getopt::Long::Configure;
 }
 
-# copied verbatim from Getopt::Long, with a bit of modification (add my)
+# Deprecated name.
+sub config (@) {
+    require Getopt::Long;
+    goto &Getopt::Long::config;
+}
+
+# copied verbatim from Getopt::Long (except for the assignment of '$Getopt::Long::caller')
 sub GetOptionsFromString(@) {
     my ($string) = shift;
     require Text::ParseWords;
     my $args = [ Text::ParseWords::shellwords($string) ];
-    local $Getopt::Long::caller ||= (caller)[0];
+    local $Getopt::Long::caller ||= (caller)[0] unless defined($Getopt::Long::caller);  # grab and set this asap.
     my $ret = GetOptionsFromArray($args, @_);
     return ( $ret, $args ) if wantarray;
     if ( @$args ) {
@@ -65,7 +78,7 @@ sub GetOptionsFromArray {
 
     my $ary = shift;
 
-    local $Getopt::Long::caller ||= (caller)[0];  # grab and set this asap.
+    local $Getopt::Long::caller ||= (caller)[0] unless defined($Getopt::Long::caller);  # grab and set this asap.
 
     my @go_opts_spec;
 
@@ -367,6 +380,38 @@ sub OptionsPod {
     join("", @res);
 
 }
+
+package Getopt::Long::More::Parser;
+use Getopt::Long;
+our @ISA=(qw/Getopt::Long::Parser/);
+
+# copied verbatim from Getopt::Long (except for the assignment of '$Getopt::Long::caller')
+sub getoptionsfromarray {
+    my ($self) = shift;
+ 
+    # Restore config settings.
+    my $save = Getopt::Long::More::Configure ($self->{settings});
+ 
+    # Call main routine.
+    my $ret = 0;
+    local $Getopt::Long::caller = $self->{caller_pkg};
+ 
+    eval {
+        # Locally set exception handler to default, otherwise it will
+        # be called implicitly here, and again explicitly when we try
+        # to deliver the messages.
+        local ($SIG{__DIE__}) = 'DEFAULT';
+        $ret = Getopt::Long::More::GetOptionsFromArray (@_);
+    };
+ 
+    # Restore saved settings.
+    Getopt::Long::More::Configure ($save);
+ 
+    # Handle errors and return value.
+    die ($@) if $@;
+    return $ret;
+}
+ 
 
 package # hide from PAUSE indexer
     Getopt::Long::More::Internal::Util;
