@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+HEREDIR="$(dirname "$BASH_SOURCE")"
+ADOPT_GOL_TEST="${HEREDIR}/adapt-gol-test"
+
+shopt -s failglob 
+
+adapt-gol-tests() {
+    local srcdir="$1";
+    local tgtdir="$2";
+
+    mkdir -p "${tgtdir}"                                || return 1
+    if [ -d "${srcdir}/lib" ] ; then 
+        mkdir -p "${tgtdir}/lib"                        || return 1
+        cp  -vaf "${srcdir}/lib"/*  "${tgtdir}/lib/"    || return 1
+    fi
+
+    # Adopt test cases to GLM; one at a time.
+    for f in "$srcdir"/*.t ; do
+       $ADOPT_GOL_TEST "$f" > "${tgtdir}/$(basename "$f")"
+    done
+}
+
+# Return if being sourced in
+[ "${BASH_SOURCE[0]}" = "$0" ]  || return 0
+
+# MAIN
+adapt-gol-tests "$@"

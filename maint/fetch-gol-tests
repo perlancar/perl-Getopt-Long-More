@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+shopt -s failglob 
+
+# Download a given CPAN distribution (using `cpanm`)
+# & print the path where it is unpacked.  
+fetch-cpan-distro() {
+    local distro="$1"   # distro or module name.
+    local rc
+    echo "pwd; exit" | cpanm -q --look "${distro}" 2>/dev/null; rc="$?"
+
+    [ "$rc" -eq "0" ] || 
+        1>&2 echo "Unable to fetch CPAN distribution '${distro}'. Are you sure you have a working copy of 'cpanm'?"
+}
+
+
+fetch-gol-tests() {
+    local dest="$1" # the destination directory (typically a subfolder of "t/")
+    local gol="Getopt::Long"
+    local ddir; ddir="$( fetch-cpan-distro "${gol}" )"; [ -n "${ddir}" ] || return 1
+    mkdir -p "${dest}"                                      || return 1
+    cp -vaf  "${ddir}/t"/*  "${dest}/"                      || return 1
+
+    # Below is no longer needed.
+    # mkdir -p "${dest}/lib"                                || return 1
+    # cp -vaf  "${ddir}/lib/newgetopt.pl"  "${dest}/lib/"   || return 1  # Don't need to fetch this; as long as GOL is properly installed
+}
+
+
+# Return if being sourced in
+[ "${BASH_SOURCE[0]}" = "$0" ]  || return 0
+
+# MAIN
+fetch-gol-tests "$@"

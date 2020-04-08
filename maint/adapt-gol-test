@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+
+our $GOL="Getopt::Long";
+our $GLM="Getopt::Long::More";
+
+
+while (<>) {
+    my $precious_GOL="<PrECioUs_GOL>"; # marker for the cases where we don't desire a string replacement
+
+    # mark precious occurences (to prevent their replacement)
+    s/${GOL}(::|\s)(VERSION)/${precious_GOL}${1}${2}/gi;    # GOL checks its own version during some tests. Leave that alone.
+    s/${GOL}/${GLM}/g;                                      # replace ""Getopt::Long" ==> "Getopt::Long::More"
+    s/${precious_GOL}/${GOL}/g;                             # Go back to restore the precious occurences of GOL.
+
+    print;
+}
+
+1;
+
+
