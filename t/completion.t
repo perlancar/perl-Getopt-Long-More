@@ -5,7 +5,7 @@ use warnings;
 use Test::More 0.98;
 
 use Capture::Tiny qw(capture_stdout);
-use Getopt::Long::More;
+use Getopt::Long::More ();
 
 test_complete(
     # Complete::Getopt::Long still requires a destination for each option
@@ -27,6 +27,8 @@ test_complete(
 --foo
 _
 );
+
+ok(!$INC{"Getopt/Long.pm"}, 'Getopt::Long does not need to be loaded during completion');
 
 DONE_TESTING:
 done_testing;
