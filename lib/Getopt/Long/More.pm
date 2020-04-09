@@ -16,6 +16,8 @@ our @EXPORT_OK = qw(HelpMessage VersionMessage Configure
                     GetOptionsFromArray GetOptionsFromString
                     OptionsPod);
 
+our $_exit_after_completion = 1;
+
 # Public API @ [GLM / OptSpec ]
 sub optspec {
     Getopt::Long::More::OptSpec->new(@_);
@@ -74,11 +76,7 @@ sub GetOptions(@) {
 my $_cur_opts_spec = [];
 
 sub GetOptionsFromArray {
-    require Getopt::Long;
-
     my $ary = shift;
-
-    local $Getopt::Long::caller ||= (caller)[0] unless defined($Getopt::Long::caller);  # grab and set this asap.
 
     my @go_opts_spec;
 
@@ -90,28 +88,6 @@ sub GetOptionsFromArray {
     }
 
     my @opts_spec = @_;
-
-    # provide explicit --help|?, for completion. also, we need to override the
-    # option destination to use our HelpMessage.
-    if ($Getopt::Long::auto_help) {
-        unshift @opts_spec, 'help|?' => optspec(
-            destination => sub { HelpMessage() },
-            summary => 'Print help message and exit',
-        );
-    }
-    local $Getopt::Long::auto_help = 0;
-
-    # provide explicit --version, for completion
-    if ($Getopt::Long::auto_version) {
-        unshift @opts_spec, 'version' => optspec(
-            destination => sub { VersionMessage() },
-            summary => 'Print program version and exit',
-        );
-    }
-    local $Getopt::Long::auto_version = 0;
-
-    # to allow our HelpMessage to generate usage/help based on options spec
-    $_cur_opts_spec = [@opts_spec];
 
     # strip the optspec objects
     my $prev;
@@ -226,9 +202,34 @@ sub GetOptionsFromArray {
                 die "Unknown shell '$shell'";
             }
 
-            exit 0;
+            if ($_exit_after_completion) { exit 0 } else { return }
         }
     }
+
+    require Getopt::Long;
+    local $Getopt::Long::caller ||= (caller)[0] unless defined($Getopt::Long::caller);  # grab and set this asap.
+
+    # provide explicit --help|?, for completion. also, we need to override the
+    # option destination to use our HelpMessage.
+    if ($Getopt::Long::auto_help) {
+        unshift @opts_spec, 'help|?' => optspec(
+            destination => sub { HelpMessage() },
+            summary => 'Print help message and exit',
+        );
+    }
+    local $Getopt::Long::auto_help = 0;
+
+    # provide explicit --version, for completion
+    if ($Getopt::Long::auto_version) {
+        unshift @opts_spec, 'version' => optspec(
+            destination => sub { VersionMessage() },
+            summary => 'Print program version and exit',
+        );
+    }
+    local $Getopt::Long::auto_version = 0;
+
+    # to allow our HelpMessage to generate usage/help based on options spec
+    $_cur_opts_spec = [@opts_spec];
 
     my $res = Getopt::Long::GetOptionsFromArray($ary, @go_opts_spec);
 
