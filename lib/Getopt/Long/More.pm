@@ -381,21 +381,29 @@ sub OptionsPod {
 
 }
 
-package Getopt::Long::More::Parser;
-use Getopt::Long;
+package # hide from PAUSE
+    Getopt::Long::More::Parser;
 our @ISA=(qw/Getopt::Long::Parser/);
+
+sub new {
+    # we delay loading Getopt::Long for startup performance reason. our new()
+    # just serves to load Getopt::Long to get Getopt::Long::Parser then pass
+    # arguments to its new().
+    require Getopt::Long;
+    goto &Getopt::Long::Parser::new;
+}
 
 # copied verbatim from Getopt::Long (except for the assignment of '$Getopt::Long::caller')
 sub getoptionsfromarray {
     my ($self) = shift;
- 
+
     # Restore config settings.
     my $save = Getopt::Long::More::Configure ($self->{settings});
- 
+
     # Call main routine.
     my $ret = 0;
     local $Getopt::Long::caller = $self->{caller_pkg};
- 
+
     eval {
         # Locally set exception handler to default, otherwise it will
         # be called implicitly here, and again explicitly when we try
@@ -403,15 +411,15 @@ sub getoptionsfromarray {
         local ($SIG{__DIE__}) = 'DEFAULT';
         $ret = Getopt::Long::More::GetOptionsFromArray (@_);
     };
- 
+
     # Restore saved settings.
     Getopt::Long::More::Configure ($save);
- 
+
     # Handle errors and return value.
     die ($@) if $@;
     return $ret;
 }
- 
+
 
 package # hide from PAUSE indexer
     Getopt::Long::More::Internal::Util;
