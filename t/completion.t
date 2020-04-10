@@ -8,8 +8,7 @@ use Capture::Tiny qw(capture_stdout);
 use Getopt::Long::More ();
 
 test_complete(
-    # Complete::Getopt::Long still requires a destination for each option
-    opts_spec => ['--foo'=>[], '--bar'=>[]],
+    opts_spec => ['--foo', '--bar'],
     comp_line0 => 'cmd --^',
 
     output => <<'_',
@@ -19,8 +18,7 @@ _
 );
 
 test_complete(
-    # Complete::Getopt::Long still requires a destination for each option
-    opts_spec => ['--foo'=>[], '--bar'=>[]],
+    opts_spec => ['--foo', '--bar'],
     comp_line0 => 'cmd --f^',
 
     output => <<'_',

@@ -179,7 +179,7 @@ sub GetOptionsFromArray {
             require Complete::Getopt::Long;
             shift @$words; $cword--; # strip program name
             my $compres = Complete::Getopt::Long::complete_cli_arg(
-                words => $words, cword => $cword, getopt_spec => {@go_opts_spec},
+                words => $words, cword => $cword, getopt_spec => \@go_opts_spec,
                 completion => $comp,
                 bundling => $Gteopt::Long::bundling,
             );
